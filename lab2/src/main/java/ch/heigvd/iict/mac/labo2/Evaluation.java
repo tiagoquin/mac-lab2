@@ -122,7 +122,7 @@ public class Evaluation {
         // TODO student: compare Analyzers here i.e. change analyzer to
         // the asked analyzers once the metrics have been implemented
 
-        int choice = 1;
+        int choice = 2;
         switch (choice){
             case 1:
                 analyzer = new WhitespaceAnalyzer();
@@ -173,60 +173,92 @@ public class Evaluation {
         double meanAveragePrecision = 0.0;
         double fMeasure = 0.0;
 
+        double avgAP = 0.0;
+        int beta = 1;
+
         // average precision at the 11 recall levels (0,0.1,0.2,...,1) over all queries
         double[] avgPrecisionAtRecallLevels = createZeroedRecalls();
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter("evaluation/queryResult.txt"));
         for(String query : queries){
             ++queryNumber;
-            writer.write(queryNumber + " : ");
-
 
             List<Integer> queryResults = lab2Index.search(query);
+
 
             int numberRetrievedDocs = queryResults.size();
 
             //b total number retrieved document
             totalRetrievedDocs += numberRetrievedDocs;
+
+
             List<Integer> qrelResults = qrels.get(queryNumber);
 
             //If we don't find the key
             if(qrelResults != null) {
+
+                int numberRelevantDocs = qrelResults.size();
+
+                int numberRetrieval = 0;
+                int numberRelevant = 0;
+                int numberRP = 0;
+                double ap = 0.0;
+                for(int retrievial : queryResults){
+                    numberRetrieval++;
+                    if(qrelResults.contains(retrievial)){
+                        numberRelevant++;
+                        ap += numberRelevant/(double)numberRetrieval;
+                        if(numberRetrieval <= qrelResults.size()){
+                            numberRP++;
+                        }
+
+                        if(numberRetrieval <= 11){
+                            //3.3.5
+                            avgPrecisionAtRecallLevels[numberRetrieval - 1] += ap;
+                        }
+                    }
+                }
+
                 //c total number relevant document
-                totalRelevantDocs += qrelResults.size();;
+                totalRelevantDocs += numberRelevantDocs;
 
                 //d total number of relevant documents retrieved for all queries
-                queryResults.retainAll(qrelResults);
-
-                //Size of queryResults after retainAll
-                int numberretrievedRelevantDocs = queryResults.size();
+                int numberretrievedRelevantDocs = numberRelevant;
                 totalRetrievedRelevantDocs += numberretrievedRelevantDocs;
+
+                //e avg precision
+                avgPrecision += numberretrievedRelevantDocs /(double) numberRetrievedDocs;
+
+                //f avg recall
+                avgRecall +=  numberretrievedRelevantDocs / (double)numberRelevantDocs;;
+
+
+                //3.3.2
+                avgAP += ap / (double)numberRetrieval;
+
+                //3.3.4
+                avgRPrecision += numberRP /(double)numberRelevantDocs;
+
+
+
+
             }
 
         }
 
-        writer.close();
-        System.out.println("--------------------------------------------------------------------------------------------------------");
-        System.out.println("totalRetrievedRelevantDocs : " + totalRetrievedRelevantDocs);
-        System.out.println("totalRetrievedDocs : " + totalRetrievedDocs);
-        System.out.println("queries.size() : " + queries.size());
+        avgPrecision /= queries.size();
+        avgRecall /= queries.size();
 
-        //e avarage precision for all queries
-        avgPrecision = (totalRetrievedRelevantDocs/(double)totalRetrievedDocs)/queries.size();
-        System.out.println("avgPrecision = (totalRetrievedRelevantDocs/(double)totalRetrievedDocs)/queries.size() : " + avgPrecision);
+        //g F-measure
+        fMeasure += ((beta*beta + 1)*avgPrecision*avgRecall)/(avgRecall + avgPrecision*beta*beta);
+        //3.3.3
+        meanAveragePrecision = avgAP / queries.size();
+        //3.3.4
+        avgRPrecision /= queries.size();
 
-
-        System.out.println("totalRetrievedRelevantDocs : " + totalRetrievedRelevantDocs);
-        System.out.println("totalRelevantDocs : " + totalRelevantDocs);
-        System.out.println("queries.size() : " + queries.size());
-        //f Avarage recall precision for all queries
-        avgRecall = (totalRetrievedRelevantDocs/(double)totalRelevantDocs)/queries.size();
-        System.out.println("avgRecall = (totalRetrievedRelevantDocs/(double)totalRelevantDocs)/queries.size() : " + avgRecall);
-        System.out.println("--------------------------------------------------------------------------------------------------------");
+        //3.3.5
+        avgPrecisionAtRecallLevels = Arrays.stream(avgPrecisionAtRecallLevels).map(x -> x/queries.size()).toArray();
 
 
-
-        //g
 
         ///
         ///  Part IV - Display the metrics
