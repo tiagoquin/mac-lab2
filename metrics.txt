@@ -1,0 +1,111 @@
+1)WhitespaceAnalyzer()
+
+Number of queries: 64
+Number of qrels: 52
+Average number of relevant docs per query: 15.307692307692308
+Number of indexed documents: 3204
+WhitespaceAnalyzer
+Number of retrieved documents: 121648
+Number of relevant documents: 796
+Number of relevant documents retrieved: 680
+Average precision: 0.00841499159036371
+Average recall: 0.7112622536671098
+F-measure: 0.016633194734427276
+MAP: 0.12963928412472234
+Average R-Precision: 0.16492122725828767
+Average precision at recall levels: 
+	0: 0.39371958911568916
+	1: 0.3091689187015161
+	2: 0.22835289827251581
+	3: 0.15667026366031264
+	4: 0.12378877623771851
+	5: 0.1084157234018547
+	6: 0.07241427290708932
+	7: 0.05492856134561633
+	8: 0.04745024256452802
+	9: 0.041928736736241215
+	10: 0.03939797142079041
+	
+2)StandardAnalyzer()
+
+Number of queries: 64
+Number of qrels: 52
+Average number of relevant docs per query: 15.307692307692308
+Number of indexed documents: 3204
+StandardAnalyzer with set size 0
+Number of retrieved documents: 128685
+Number of relevant documents: 796
+Number of relevant documents retrieved: 735
+Average precision: 0.007137810465699275
+Average recall: 0.7602723756456631
+F-measure: 0.014142840993977043
+MAP: 0.14817623100763
+Average R-Precision: 0.15273791341732218
+Average precision at recall levels: 
+	0: 0.4288411695118541
+	1: 0.31401351262272564
+	2: 0.22690692798608092
+	3: 0.1834885142849792
+	4: 0.15169830443047222
+	5: 0.119734741919341
+	6: 0.09955039134529094
+	7: 0.08015828392082974
+	8: 0.06887624018171057
+	9: 0.05023090796976311
+	10: 0.04545214038221144
+	
+3)EnglishAnalyzer()
+
+Number of queries: 64
+Number of qrels: 52
+Average number of relevant docs per query: 15.307692307692308
+Number of indexed documents: 3204
+EnglishAnalyzer with set size 33
+Number of retrieved documents: 82734
+Number of relevant documents: 796
+Number of relevant documents retrieved: 720
+Average precision: 0.009277678381118874
+Average recall: 0.7383922330678326
+F-measure: 0.018325107250185907
+MAP: 0.19252583100797857
+Average R-Precision: 0.1982900024021618
+Average precision at recall levels: 
+	0: 0.49073502662212337
+	1: 0.3749044510422283
+	2: 0.30134510246688856
+	3: 0.2579160717372474
+	4: 0.20938613952742752
+	5: 0.17684562462789882
+	6: 0.14606877642322857
+	7: 0.11830835351679926
+	8: 0.09698117374513972
+	9: 0.0680761317388931
+	10: 0.0587307388951329
+
+4)EnglishAnalyzer(commonWords)
+
+Number of queries: 64
+Number of qrels: 52
+Average number of relevant docs per query: 15.307692307692308
+Number of indexed documents: 3204
+EnglishAnalyzer with set size 428
+Number of retrieved documents: 74608
+Number of relevant documents: 796
+Number of relevant documents retrieved: 717
+Average precision: 0.010144499846077897
+Average recall: 0.7356950604487851
+F-measure: 0.020013039867535096
+MAP: 0.208917105210195
+Average R-Precision: 0.22064904237247565
+Average precision at recall levels: 
+	0: 0.48801760466394134
+	1: 0.4159947566989979
+	2: 0.32876961946224487
+	3: 0.2830960714333575
+	4: 0.2251264820485773
+	5: 0.1901042535445608
+	6: 0.16197608293371346
+	7: 0.1297233673502297
+	8: 0.10933891294193604
+	9: 0.07598508116370914
+	10: 0.06422551998589987

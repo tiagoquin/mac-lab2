@@ -1,5 +1,6 @@
 package ch.heigvd.iict.mac.labo2;
 
+import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.StopwordAnalyzerBase;
@@ -113,16 +114,15 @@ public class Evaluation {
         avgQrels /= qrels.size();
         System.out.println("Average number of relevant docs per query: " + avgQrels);
 
-        //TODO student: use this when doing the english analyzer + common words
+        //use this when doing the english analyzer + common words
         List<String> commonWords = readingCommonWords();
 
         ///
         ///  Part I - Select an analyzer
         ///
-        // TODO student: compare Analyzers here i.e. change analyzer to
         // the asked analyzers once the metrics have been implemented
 
-        int choice = 2;
+        int choice = 4;
         switch (choice){
             case 1:
                 analyzer = new WhitespaceAnalyzer();
@@ -152,7 +152,6 @@ public class Evaluation {
         ///  precision, recall,...
         ///
 
-        // TODO student
         // compute the metrics asked in the instructions
         // you may want to call these methods to get:
         // -  The query results returned by Lucene i.e. computed/empirical
@@ -180,82 +179,121 @@ public class Evaluation {
         double[] avgPrecisionAtRecallLevels = createZeroedRecalls();
 
         for(String query : queries){
-            ++queryNumber;
+            //Array for recall level precision for each query
+            double[] avgPrecisionAtRecallLevelsByQuery = createZeroedRecalls();
 
+            //Get the retrieval results for this query
             List<Integer> queryResults = lab2Index.search(query);
 
+            //total retrieved document for this query
+            int totalRetrievedDocsByQuery = queryResults.size();
 
-            int numberRetrievedDocs = queryResults.size();
+            queryNumber += 1;
 
-            //b total number retrieved document
-            totalRetrievedDocs += numberRetrievedDocs;
-
-
+            //Get the relevent result for this query
             List<Integer> qrelResults = qrels.get(queryNumber);
+
+            // Partie 3.3.1.b - Total number retrieved document for all queries
+            totalRetrievedDocs += totalRetrievedDocsByQuery;
+
 
             //If we don't find the key
             if(qrelResults != null) {
 
-                int numberRelevantDocs = qrelResults.size();
+                //Total of relevant document for this query
+                int totalRelevantDocsByQuery = qrelResults.size();
 
-                int numberRetrieval = 0;
-                int numberRelevant = 0;
+                //Counter of retrievel document this query
+                int counterRetrieval = 0;
+
+                //Counter of relevant document for this query
+                int counterRelevant = 0;
+
+                //Number of relevant document of the first x (x = totalRelevantDocsByQuery)
                 int numberRP = 0;
-                double ap = 0.0;
+
+                //AveragePrecision for this query
+                double averagePrecisionByQuery = 0.0;
+
+                //Recall by document
+                double recall = 0.0;
+
+                //Precision by document
+                double precision = 0.0;
+
+                //For each retrieval document of this query
                 for(int retrievial : queryResults){
-                    numberRetrieval++;
+                    counterRetrieval++;
+
+                    //Check if the document is relevant
                     if(qrelResults.contains(retrievial)){
-                        numberRelevant++;
-                        ap += numberRelevant/(double)numberRetrieval;
-                        if(numberRetrieval <= qrelResults.size()){
+                        //Increment the counter of relevant
+                        counterRelevant++;
+
+                        //Calcul the averagePrecision for this query
+                        averagePrecisionByQuery += counterRelevant/(double)counterRetrieval;
+
+                        //Calcul the recall of this documents
+                        recall = counterRelevant / (double)totalRelevantDocsByQuery;
+
+                        //Calcule the precision of this document
+                        precision = counterRelevant / (double)counterRetrieval;
+
+                        if(counterRetrieval <= totalRelevantDocsByQuery){
                             numberRP++;
                         }
 
-                        if(numberRetrieval <= 11){
-                            //3.3.5
-                            avgPrecisionAtRecallLevels[numberRetrieval - 1] += ap;
+                        int counterPrecision = (int)Math.floor(recall*10);
+                        for(int i = counterPrecision; i >= 0; --i){
+                            if(avgPrecisionAtRecallLevelsByQuery[i] < precision){
+                                avgPrecisionAtRecallLevelsByQuery[i] = precision;
+                            }
                         }
                     }
                 }
 
-                //c total number relevant document
-                totalRelevantDocs += numberRelevantDocs;
+                // Partie 3.3.1.c - Total number relevant document for all queries
+                totalRelevantDocs += totalRelevantDocsByQuery;
 
-                //d total number of relevant documents retrieved for all queries
-                int numberretrievedRelevantDocs = numberRelevant;
-                totalRetrievedRelevantDocs += numberretrievedRelevantDocs;
+                // Partie 3.3.1.d - Total number of relevant documents retrieved for all queries
+                totalRetrievedRelevantDocs += counterRelevant;
 
-                //e avg precision
-                avgPrecision += numberretrievedRelevantDocs /(double) numberRetrievedDocs;
+                // Partie 3.3.1.e - Average precision for all queries
+                avgPrecision += counterRelevant /(double) totalRetrievedDocsByQuery;
 
-                //f avg recall
-                avgRecall +=  numberretrievedRelevantDocs / (double)numberRelevantDocs;;
-
-
-                //3.3.2
-                avgAP += ap / (double)numberRetrieval;
-
-                //3.3.4
-                avgRPrecision += numberRP /(double)numberRelevantDocs;
+                // Partie 3.3.1.f - Average recall for all queries
+                avgRecall +=  counterRelevant / (double)totalRelevantDocsByQuery;;
 
 
+                // Partie 3.3.3 - Mean average pecision
+                meanAveragePrecision += averagePrecisionByQuery/(double)totalRelevantDocsByQuery;
 
+                // Partie 3.3.4 - R-Precision
+                avgRPrecision += numberRP /(double)totalRelevantDocsByQuery;
 
+                // Partie 3.3.5 - Average precision at standart recall levels
+                for(int i = 0; i < avgPrecisionAtRecallLevels.length; ++i){
+                    avgPrecisionAtRecallLevels[i] += avgPrecisionAtRecallLevelsByQuery[i];
+                }
             }
-
         }
 
+        // Partie 3.3.1.e - Average precision for all queries
         avgPrecision /= queries.size();
+
+        // Partie 3.3.1.f - Average recall for all queries
         avgRecall /= queries.size();
 
-        //g F-measure
-        fMeasure += ((beta*beta + 1)*avgPrecision*avgRecall)/(avgRecall + avgPrecision*beta*beta);
-        //3.3.3
-        meanAveragePrecision = avgAP / queries.size();
-        //3.3.4
+        // Partie 3.3.1.g F-measure using average precision and average recall
+        fMeasure += ((Math.pow(beta,2) + 1)*avgPrecision*avgRecall)/(avgRecall + avgPrecision*(Math.pow(beta,2)));
+
+        // Partie 3.3.3 - Mean average pecision
+        meanAveragePrecision /= queries.size();
+
+        // Partie 3.3.4 - R-Precision
         avgRPrecision /= queries.size();
 
-        //3.3.5
+        // Partie 3.3.5 - Average precision at standart recall levels
         avgPrecisionAtRecallLevels = Arrays.stream(avgPrecisionAtRecallLevels).map(x -> x/queries.size()).toArray();
 
 
@@ -263,9 +301,6 @@ public class Evaluation {
         ///
         ///  Part IV - Display the metrics
         ///
-
-        //TODO student implement what is needed (i.e. the metrics) to be able
-        // to display the results
         displayMetrics(totalRetrievedDocs, totalRelevantDocs,
                 totalRetrievedRelevantDocs, avgPrecision, avgRecall, fMeasure,
                 meanAveragePrecision, avgRPrecision,
